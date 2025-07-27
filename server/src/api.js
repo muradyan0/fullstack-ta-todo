@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { getList, updateSort } from "./store.js";
+import { getList, updateSort, updateTasks } from "./store.js";
 
 export const router = Router();
 
@@ -32,12 +32,10 @@ router.post("/sort", (req, res) => {
   }
 });
 
-router.post("/order", (req, res) => {
+router.post("/", (req, res) => {
   try {
-    if (req.query.sort) {
-      const newSort = updateSort(req.query.sort);
-      res.send({ sort: newSort });
-    }
+    updateTasks(req.body);
+    res.sendStatus(200)
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
