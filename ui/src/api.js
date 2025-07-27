@@ -1,4 +1,4 @@
-const API = "http://localhost:3000";
+const API = import.meta.env.VITE_API || "";
 
 export async function getList({ pageParam = 1, limit = 20, queryKey }) {
   try {
