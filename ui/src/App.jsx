@@ -1,5 +1,4 @@
 import {
-  useQuery,
   useMutation,
   useQueryClient,
   QueryClient,
@@ -8,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import React from "react";
 
-import { getList, updateSort } from "./api";
+import { getList, updateSort, updateTasks } from "./api";
 
 import "./App.css";
 
@@ -77,6 +76,21 @@ const combineArrays = (first, second) => {
   return [...first, ...uniqueFromSecond];
 };
 
+function sliceByIds(array, startId, endId) {
+  const startIndex = array.findIndex((item) => item.id === startId);
+  const endIndex = array.findIndex((item) => item.id === endId);
+
+  if (startIndex === -1 || endIndex === -1) {
+    return []; // or handle error as needed
+  }
+
+  // Get slice regardless of order
+  const actualStart = Math.min(startIndex, endIndex);
+  const actualEnd = Math.max(startIndex, endIndex) + 1;
+
+  return array.slice(actualStart, actualEnd);
+}
+
 function Todos() {
   const queryClient = useQueryClient();
 
@@ -91,8 +105,8 @@ function Todos() {
 
   const topRef = React.useRef(null);
 
-  const orderMutation = useMutation({
-    mutationFn: updateSort,
+  const itemMutation = useMutation({
+    mutationFn: updateTasks,
     onSuccess: () => {
       queryClient.refetchQueries({ queryKey: ["todos"] });
     },
@@ -102,8 +116,7 @@ function Todos() {
     mutationFn: updateSort,
     onSuccess: () => {
       setOrderedTodos([]);
-      // queryClient.invalidateQueries({ queryKey: ["todos"] });
-       queryClient.resetQueries({ queryKey: ['todos']});
+      queryClient.resetQueries({ queryKey: ["todos"] });
     },
   });
 
@@ -120,6 +133,11 @@ function Todos() {
     if (data?.pages.at(0)) {
       setSort(data?.pages.at(0).sort);
     }
+    const s = data?.pages
+      .flatMap((page) => page.data)
+      .filter((i) => i.isSelected)
+      .map((i) => i.id);
+    setSelected(new Set(s));
 
     if (searchQuery === "") {
       setOrderedTodos((prev) =>
@@ -157,23 +175,29 @@ function Todos() {
   const handleSelect = (e, id) => {
     setSelected((prev) => {
       const newSet = new Set(prev);
+      let updateState = [];
       if (!e.shiftKey) {
         if (newSet.has(id)) {
           newSet.delete(id);
+          updateState = [...updateState, { id: id, isSelected: false }];
         } else {
           newSet.add(id);
+          updateState = [...updateState, { id: id, isSelected: true }];
         }
 
+        itemMutation.mutate(updateState);
         return newSet;
       }
 
-      const from = Math.min(lastSelected, id, ...selected);
+      const from = lastSelected;
       const to = id;
       const rangeSet = new Set();
-      for (let i = from; i <= to; i++) {
-        rangeSet.add(i);
-      }
+      sliceByIds(orderedTodos, from, to).forEach((item) => {
+        rangeSet.add(item.id);
+        updateState = [...updateState, { id: item.id, isSelected: true }];
+      });
 
+      itemMutation.mutate(updateState);
       return rangeSet;
     });
 
@@ -214,6 +238,7 @@ function Todos() {
     newTodos.splice(targetIndex, 0, movedItem);
 
     setOrderedTodos(newTodos);
+    itemMutation.mutate(newTodos.map((i, idx) => ({ ...i, index: idx })));
   };
 
   const handleDragEnter = (e) => {

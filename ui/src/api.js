@@ -45,3 +45,21 @@ export async function updateSort(sort) {
     console.log(err);
   }
 }
+
+export async function updateTasks(tasks) {
+  try {
+    const resp = await fetch(`${API}/api/tasks`, {
+      method: "POST",
+      body: JSON.stringify(tasks),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (!resp.ok) {
+      throw Error("cannot update sort option");
+    }
+    return;
+  } catch (err) {
+    console.log(err);
+  }
+}
