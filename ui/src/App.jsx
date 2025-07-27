@@ -222,7 +222,9 @@ function Todos() {
 
   const handleDrop = (e, targetId) => {
     e.preventDefault();
-    e.currentTarget.style.backgroundColor = "white";
+    e.currentTarget.style.backgroundColor = selected.has(targetId)
+      ? "gainsboro"
+      : "white";
 
     if (draggedItem === targetId) return;
 
@@ -238,7 +240,13 @@ function Todos() {
     newTodos.splice(targetIndex, 0, movedItem);
 
     setOrderedTodos(newTodos);
-    itemMutation.mutate(newTodos.map((i, idx) => ({ ...i, index: idx })));
+    itemMutation.mutate(
+      newTodos.map((i, idx) => ({
+        ...i,
+        index: idx,
+        isSelected: selected.has(i.id),
+      }))
+    );
   };
 
   const handleDragEnter = (e) => {
@@ -246,9 +254,11 @@ function Todos() {
     e.currentTarget.style.backgroundColor = "#f0f9ff";
   };
 
-  const handleDragLeave = (e) => {
+  const handleDragLeave = (e, id) => {
     e.preventDefault();
-    e.currentTarget.style.backgroundColor = "white";
+    e.currentTarget.style.backgroundColor = selected.has(id)
+      ? "gainsboro"
+      : "white";
   };
 
   return (
@@ -286,7 +296,7 @@ function Todos() {
                 onDragEnd={handleDragEnd}
                 onDragOver={handleDragOver}
                 onDragEnter={handleDragEnter}
-                onDragLeave={handleDragLeave}
+                onDragLeave={(e) => handleDragLeave(e, todo.id)}
                 onDrop={(e) => handleDrop(e, todo.id)}
               >
                 <div className="card-text">
