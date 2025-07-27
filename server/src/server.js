@@ -11,7 +11,7 @@ newStore("./db.json")
 app.use(cors());
 app.use(express.json());
 
-
+app.use(express.static('dist'));
 
 app.use("/api/tasks", router);
 
