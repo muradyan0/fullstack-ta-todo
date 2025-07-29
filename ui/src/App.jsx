@@ -65,17 +65,6 @@ function SearchBar({
   );
 }
 
-const combineArrays = (first, second) => {
-  // Create a Set of IDs from the first array for quick lookup
-  const firstIds = new Set(first.map((item) => item.id));
-
-  // Filter second array to get items not in first array
-  const uniqueFromSecond = second.filter((item) => !firstIds.has(item.id));
-
-  // Concatenate while preserving order
-  return [...first, ...uniqueFromSecond];
-};
-
 function sliceByIds(array, startId, endId) {
   const startIndex = array.findIndex((item) => item.id === startId);
   const endIndex = array.findIndex((item) => item.id === endId);
@@ -139,13 +128,7 @@ function Todos() {
       .map((i) => i.id);
     setSelected(new Set(s));
 
-    if (searchQuery === "") {
-      setOrderedTodos((prev) =>
-        combineArrays(prev, data?.pages.flatMap((page) => page.data) || [])
-      );
-    } else {
-      setOrderedTodos(data?.pages.flatMap((page) => page.data) || []);
-    }
+    setOrderedTodos(data?.pages.flatMap((page) => page.data) || []);
   }, [data]);
 
   React.useEffect(() => {
