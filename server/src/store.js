@@ -1,7 +1,5 @@
-import fs from "fs";
-
 let storeData = [];
-let storeSort = "DESC";
+let storeSort = "ASC";
 
 export function getList({ query, page = 1, limit = 20 }) {
   const offset = (page - 1) * limit;
@@ -58,11 +56,11 @@ export function updateTasks(tasks) {
 
 export function newStore(filename) {
   try {
-    const rawData = fs.readFileSync(filename);
-    storeData = JSON.parse(rawData);
-    storeData.sort((a, b) =>
-      storeSort === "ASC" ? a.value - b.value : b.value - a.value
-    );
+    storeData = Array.from({ length: 1000000 }, (_, i) => ({
+      id: i + 1,
+      value: i + 1,
+      isSelected: false,
+    }));
   } catch (err) {
     console.error("Error reading file:", err);
   }
